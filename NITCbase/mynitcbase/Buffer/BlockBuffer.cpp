@@ -10,11 +10,17 @@ BlockBuffer::BlockBuffer(int blockNum) {
     this->blockNum = blockNum;
 }
 
+
 RecBuffer::RecBuffer(int blockNum) : BlockBuffer::BlockBuffer(blockNum) {}
 
 int BlockBuffer::getHeader(struct HeadInfo *head) {
-    unsigned char buffer[BLOCK_SIZE];
 
+    unsigned char* bufferPtr;
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+    if (ret != SUCCESS)
+        return ret;
+
+    unsigned char buffer[BLOCK_SIZE];
     Disk::readBlock(buffer, this->blockNum);
 
     memcpy(&head->numSlots, buffer+24, 4);
@@ -26,6 +32,13 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
 }
 
 int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
+
+    unsigned char* bufferPtr;
+    int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+
+    if (ret != SUCCESS)
+        return ret;
+
     struct HeadInfo head;
     this->getHeader(&head);    
 
@@ -41,5 +54,9 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
     unsigned char* slotPointer = buffer + offset;
     memcpy(rec, slotPointer, recordSize);
     return SUCCESS;
+}
 
+
+int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
+    
 }
