@@ -1,15 +1,11 @@
 #include "BlockBuffer.h"
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-using namespace std;
-
 
 
 BlockBuffer::BlockBuffer(int blockNum) {
     this->blockNum = blockNum;
 }
-
 
 RecBuffer::RecBuffer(int blockNum) : BlockBuffer::BlockBuffer(blockNum) {}
 
@@ -20,14 +16,12 @@ int BlockBuffer::getHeader(struct HeadInfo *head) {
     if (ret != SUCCESS)
         return ret;
 
-    unsigned char buffer[BLOCK_SIZE];
-    Disk::readBlock(buffer, this->blockNum);
 
-    memcpy(&head->numSlots, buffer+24, 4);
-    memcpy(&head->numAttrs, buffer+20, 4);
-    memcpy(&head->numEntries, buffer+16, 4);
-    memcpy(&head->rblock, buffer+12, 4);
-    memcpy(&head->lblock, buffer+8, 4);
+    memcpy(&head->numSlots, bufferPtr+24, 4);
+    memcpy(&head->numAttrs, bufferPtr+20, 4);
+    memcpy(&head->numEntries, bufferPtr+16, 4);
+    memcpy(&head->rblock, bufferPtr+12, 4);
+    memcpy(&head->lblock, bufferPtr+8, 4);
     return SUCCESS;
 }
 
@@ -35,7 +29,6 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
 
     unsigned char* bufferPtr;
     int ret = loadBlockAndGetBufferPtr(&bufferPtr);
-
     if (ret != SUCCESS)
         return ret;
 
@@ -46,17 +39,28 @@ int RecBuffer::getRecord(union Attribute *rec, int slotNum) {
     int slotCount = head.numSlots;
     
 
-    unsigned char buffer[BLOCK_SIZE];
-    Disk::readBlock(buffer, this->blockNum);
 
     int recordSize = attrCount*ATTR_SIZE;
     int offset = HEADER_SIZE + slotCount + (recordSize*slotNum); 
-    unsigned char* slotPointer = buffer + offset;
+    unsigned char* slotPointer = bufferPtr + offset;
     memcpy(rec, slotPointer, recordSize);
     return SUCCESS;
 }
 
-
 int BlockBuffer::loadBlockAndGetBufferPtr(unsigned char **buffPtr) {
-    
+    int bufferNum = StaticBuffer::getBufferNum(this->blockNum);
+
+    if (bufferNum == E_BLOCKNOTINBUFFER) {
+        bufferNum = StaticBuffer::getFreeBuffer(this->blockNum);
+
+        if (bufferNum == E_OUTOFBOUND)
+            return E_OUTOFBOUND;
+
+        Disk::readBlock(StaticBuffer::blocks[bufferNum], this->blockNum);
+    }
+
+    *buffPtr = StaticBuffer::blocks[bufferNum];
+
+    return SUCCESS;
+
 }

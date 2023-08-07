@@ -6,20 +6,23 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-	/* Initialize the run copy of disk */
 	Disk disk_run;
-	// unsigned char buffer[BLOCK_SIZE];
-	// Disk::readBlock(buffer, 7000);
-	// char message[] = "hello";
-	// memcpy(buffer+20, message, 6);
-	// Disk::writeBlock(buffer, 7000);
+	StaticBuffer buffer;
 
-	// unsigned char buffer2[BLOCK_SIZE];
-	// char message2[6];
-	// Disk::readBlock(buffer2, 7000);
-	// memcpy(message2, buffer2+20, 6);
+	/* HELLO WORLD
+		unsigned char buffer[BLOCK_SIZE];
+		Disk::readBlock(buffer, 7000);
+		char message[] = "hello";
+		memcpy(buffer+20, message, 6);
+		Disk::writeBlock(buffer, 7000);
 
-	// cout << message2 << endl;
+		unsigned char buffer2[BLOCK_SIZE];
+		char message2[6];
+		Disk::readBlock(buffer2, 7000);
+		memcpy(message2, buffer2+20, 6);
+
+		cout << message2 << endl;
+	*/
 
 	RecBuffer relCatBuffer(RELCAT_BLOCK);
 	RecBuffer attrCatBuffer(ATTRCAT_BLOCK);
@@ -27,9 +30,9 @@ int main(int argc, char* argv[]) {
 	HeadInfo relCatHeader;
 	HeadInfo attrCatHeader;
 
-
 	relCatBuffer.getHeader(&relCatHeader);
 	attrCatBuffer.getHeader(&attrCatHeader);
+
 
 	for (int i = 0; i < relCatHeader.numEntries; i++) {
 		Attribute relCatRecord[RELCAT_NO_ATTRS];
@@ -48,8 +51,4 @@ int main(int argc, char* argv[]) {
 		cout << endl;
 	}
 	return 0;
-
-	//StaticBuffer buffer;
-	//OpenRelTable cache;
-
 }
